@@ -1,84 +1,55 @@
-MyBatis JPetStore
-=================
+# To deploy Java based application on Kubernetes Cluster using CICD 
 
-[![Java CI](https://github.com/mybatis/jpetstore-6/actions/workflows/ci.yaml/badge.svg)](https://github.com/mybatis/jpetstore-6/actions/workflows/ci.yaml)
-[![Container Support](https://github.com/mybatis/jpetstore-6/actions/workflows/support.yaml/badge.svg)](https://github.com/mybatis/jpetstore-6/actions/workflows/support.yaml)
-[![Coverage Status](https://coveralls.io/repos/github/mybatis/jpetstore-6/badge.svg?branch=master)](https://coveralls.io/github/mybatis/jpetstore-6?branch=master)
-[![License](https://img.shields.io/:license-apache-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
+I'm going to deploy my java based application in Docker Container and the K8S cluster. I have used below repository to deploying application.
 
-![mybatis-jpetstore](https://mybatis.org/images/mybatis-logo.png)
+    https://github.com/kohlidevops/jpetstore.git
 
-JPetStore 6 is a full web application built on top of MyBatis 3, Spring 5 and Stripes.
+## Step -1: Setup Jenkins
 
-Essentials
-----------
+Launch new EC2 t2.large instance with Ubuntu-22 Image.
 
-* [See the docs](http://www.mybatis.org/jpetstore-6)
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/d203a4bd-bb8c-46ed-82cf-08fcab180923)
 
-## Other versions that you may want to know about
+### Install Jenkins
 
-- JPetstore on top of Spring, Spring MVC, MyBatis 3, and Spring Security https://github.com/making/spring-jpetstore
-- JPetstore with Vaadin and Spring Boot with Java Config https://github.com/igor-baiborodine/jpetstore-6-vaadin-spring-boot
-- JPetstore on MyBatis Spring Boot Starter https://github.com/kazuki43zoo/mybatis-spring-boot-jpetstore
+SSH to Jenkins instance and run below commands to install Jenkins
 
-## Run on Application Server
-Running JPetStore sample under Tomcat (using the [cargo-maven2-plugin](https://codehaus-cargo.github.io/cargo/Maven2+plugin.html)).
+    sudo apt update -y
+    sudo apt upgrade -y
+    wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc
+    echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
+    sudo apt update -y
+    sudo apt install temurin-17-jdk -y
+    /usr/bin/java --version
+    curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
+                  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+    echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+                  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+                              /etc/apt/sources.list.d/jenkins.list > /dev/null
+    sudo apt-get update -y
+    sudo apt-get install jenkins -y
+    sudo systemctl start jenkins
+    sudo systemctl status jenkins
 
-- Clone this repository
+After installation of Jenkins, I will create Inbound Port 8080, since Jenkins works on Port 8080.
 
-  ```
-  $ git clone https://github.com/mybatis/jpetstore-6.git
-  ```
+But for my case, we are running Jenkins on another port. Because my application has to be use 8080 port. So, I'm going to change the port to 8090 using the below commands.
 
-- Build war file
+    sudo systemctl stop jenkins
+    sudo systemctl status jenkins
+    cd /etc/default
+    sudo vi jenkins   
+    <change port HTTP_PORT=8090 and save and exit>
+    cd /lib/systemd/system
+    sudo vi jenkins.service  
+    <change Environments="Jenkins_port=8090" save and exit>
+    sudo systemctl daemon-reload
+    sudo systemctl restart jenkins
+    sudo systemctl status jenkins
 
-  ```
-  $ cd jpetstore-6
-  $ ./mvnw clean package
-  ```
+Now access the Jenkins webui using IP with port - 8090 and login the console then install suggested plugins.
 
-- Startup the Tomcat server and deploy web application
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/795aac40-b076-499a-b6a9-4543e94355d0)
 
-  ```
-  $ ./mvnw cargo:run -P tomcat90
-  ```
 
-  > Note:
-  >
-  > We provide maven profiles per application server as follow:
-  >
-  > | Profile        | Description |
-  > | -------------- | ----------- |
-  > | tomcat90       | Running under the Tomcat 9.0 |
-  > | tomcat85       | Running under the Tomcat 8.5 |
-  > | tomee80        | Running under the TomEE 8.0(Java EE 8) |
-  > | tomee71        | Running under the TomEE 7.1(Java EE 7) |
-  > | wildfly26      | Running under the WildFly 26(Java EE 8) |
-  > | wildfly13      | Running under the WildFly 13(Java EE 7) |
-  > | liberty-ee8    | Running under the WebSphere Liberty(Java EE 8) |
-  > | liberty-ee7    | Running under the WebSphere Liberty(Java EE 7) |
-  > | jetty          | Running under the Jetty 9 |
-  > | glassfish5     | Running under the GlassFish 5(Java EE 8) |
-  > | glassfish4     | Running under the GlassFish 4(Java EE 7) |
-  > | resin          | Running under the Resin 4 |
 
-- Run application in browser http://localhost:8080/jpetstore/ 
-- Press Ctrl-C to stop the server.
-
-## Run on Docker
-```
-docker build . -t jpetstore
-docker run -p 8080:8080 jpetstore
-```
-or with Docker Compose:
-```
-docker compose up -d
-```
-
-## Try integration tests
-
-Perform integration tests for screen transition.
-
-```
-$ ./mvnw clean verify -P tomcat90
-```
