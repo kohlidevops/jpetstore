@@ -98,3 +98,45 @@ Add Maven
 
 ![0 ko5xAW5n2MXQsgZc](https://github.com/kohlidevops/jpetstore/assets/100069489/ffc84fa3-0230-40c7-aeeb-d7324d05fb29)
 
+## Step -3: Create a Jenkins job
+
+To create a jenkins job with pipeline
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/65af51a4-39d7-4bee-ac56-732820ef30b1)
+
+Im going to keep the maximum number of build as 4
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/47878f77-cbd9-4dee-9fb2-f4404e7f0ac0)
+
+Navigate to Pipeline and select Pipeline script and paste the below script then check whether its working or not
+
+        pipeline{
+            agent any
+            tools {
+                jdk 'jdk17'
+                maven 'maven3'
+            }
+            stages{
+                stage ('Clean Workspace'){
+                    steps{
+                        cleanWs()
+                    }
+                }
+                stage ('Git Checkout') {
+                    steps {
+                        git 'https://github.com/Aj7Ay/jpetstore-6.git'
+                    }
+                }
+                stage ('Maven Compile') {
+                    steps {
+                        sh 'mvn clean compile'
+                    }
+                }
+                stage ('Maven Test') {
+                    steps {
+                        sh 'mvn test'
+                    }
+                }
+           }
+        }
+
