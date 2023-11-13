@@ -256,6 +256,53 @@ If you want to check with sonarqube application for code analysis, Then please l
 
 ![image](https://github.com/kohlidevops/jpetstore/assets/100069489/4badc36c-cc2c-4d92-8191-f564665b9ee1)
 
+### Install OWASP Dependency check
+
+Jenkins console → Manage Jenkins → Plugins → OWASP Dependency-Check. Click on it and install it without restart.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/97c2a9f1-a6de-415f-9823-187be1778e35)
+
+In order to configure OWASP in Jenkins Tools
+
+Jenkins console -> Manage Jenkins -> Tools
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/b73f9964-53ff-4b84-b72e-d8f1834b19f7)
+
+Apply and save it.
+
+### Add OWASP stage in Pipeline
+
+Jenkins console -> select your Job -> Navigate to Pipeline and add below stages
+
+        stage ('Build WAR file'){
+                    steps{
+                        sh 'mvn clean install -DskipTests=true'
+                    }
+                }
+                stage("OWASP Dependency Check"){
+                    steps{
+                        dependencyCheck additionalArguments: '--scan ./ --format XML ', odcInstallation: 'DP-Check'
+                        dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                    }
+                }
+
+Apply and save it - Then start the build to see the result.
+
+## Step -5: Docker Image Build and Push Stage
+
+### Install Docker plugins
+
+Jenkins console → Manage Plugins → Available plugins → Search for Docker and install these plugins.
+
+        Docker
+        Docker Commons
+        Docker Pipeline
+        Docker API
+        docker-build-step
+
+Click install without restart.
+
+
 
 
 
