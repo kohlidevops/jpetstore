@@ -124,7 +124,7 @@ Navigate to Pipeline and select Pipeline script and paste the below script then 
                 }
                 stage ('Git Checkout') {
                     steps {
-                        git 'https://github.com/Aj7Ay/jpetstore-6.git'
+                        git branch: 'main', url: 'https://github.com/kohlidevops/jpetstore.git'
                     }
                 }
                 stage ('Maven Compile') {
@@ -139,4 +139,11 @@ Navigate to Pipeline and select Pipeline script and paste the below script then 
                 }
            }
         }
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/edb91b76-c95c-4f20-af19-d27de7a41305)
+
+Now start the build to see the result. Perfect My build has been succeeded.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/00819016-efd2-47d5-954a-6e709fcad992)
+
 
