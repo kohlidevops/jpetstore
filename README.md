@@ -244,7 +244,17 @@ Environamet 'sonar-server' -> I have installed sonar-scanner from Maven in Jenki
 
 Token 'Sonar-token' -> I have created with this Id in Jenkins credentials for Quality status check
 
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/afacf9d5-535d-4053-bd02-b72ab7ed0967)
+
 Now, update this code in pipeline and start the build again.
+
+This build too successfully completed without fail.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/376fe8c8-a8b2-47f0-823e-9accd7c4232c)
+
+If you want to check with sonarqube application for code analysis, Then please logon to the sonarqube application check the code status.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/4badc36c-cc2c-4d92-8191-f564665b9ee1)
 
 
 
