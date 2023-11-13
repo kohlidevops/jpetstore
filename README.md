@@ -146,4 +146,107 @@ Now start the build to see the result. Perfect My build has been succeeded.
 
 ![image](https://github.com/kohlidevops/jpetstore/assets/100069489/00819016-efd2-47d5-954a-6e709fcad992)
 
+## Step -4: Configure Sonarqube
+
+I have launched Sonarqube application using docker container in Jenkins server. You can access the Sonarqube using the Jenkins IP address with Port 9000.
+
+By default, user name and password is "admin" for sonarqube. Then we have to reset the password.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/54f0baf9-ccc1-401e-9b95-1a68415c1f35)
+
+### Generate a Token in Sonarqube
+
+To access the Sonarqube application from Jenkins, we have to create Token in Sonarqube. You can navigate using below steps.
+
+Sonarqube Application -> Login -> Administration → Security → Users → Click on Tokens and Update Token → Meaningful name → and click on Generate Token
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/32c1388d-f1fe-4c0d-8992-6f1de31f0385)
+
+This token will shown for one time. So save it locally for later use.
+
+### Configure Sonarqube token in Jenkins
+
+Navigate to Jenkins console and do below steps to save Sonarqube token as securely.
+
+Jenkins console -> Manage Jenkins -> Credentials
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/1e759502-a148-4fe7-b10e-c923c6a0b48c)
+
+Add Credentials -> Secret Text -> Paste the Sonarqube token in Secret label -> provide meaningful name and save it.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/a09e06cc-6fd1-4020-be4f-d8fb6180124e)
+
+### Configure Sonarqube server in Jenkins
+
+Navigate to Jenkins console -> Manage Jenkins -> System -> Sonarqube servers -> Sonarqube installation -> Add
+
+Provide a meaningful name -> Server URL (Sonarqube URL with port) -> Server authentication token - Select the token which is created just before in Jenkins credentials.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/f79e2d40-9f53-4d29-90c5-18a071a7a04b)
+
+Apply and save.
+
+### Install Sonarscanner in Jenkins
+
+To install a Sonarscanner in Jenkins console using Global Tool.
+
+Jenkins -> Manage Jenkins -> Tools
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/f94717a4-b011-4e19-a157-db6201738b99)
+
+Select -> Sonarqube scanner installation -> Add
+
+Provide a meaningful name and install sonarscanner from Maven central.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/22271c9e-af4a-42db-a8cd-7cca1ca28d3f)
+
+Apply and save it.
+
+### Configure Webhooks in Sonarqube application
+
+Login to Sonarqube application -> Administration -> Configuration -> Webhooks -> Create a webhook
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/3e321b46-714c-45c2-a77e-9dac43af1d29)
+
+Provide a meaningful name and URL should be "Jenkins-URL:Port/sonarqube-webhook/ and create it.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/9cfe3c40-1528-4d41-a661-4aa157cf428f)
+
+### Add Sonarqube stage in Jenkins pipeline
+
+To add a Sonarqube stage in Jenkins pipeline using below code
+
+#### under tools section add this environment
+        environment {
+                SCANNER_HOME=tool 'sonar-scanner'
+            }
+#### in stages add this
+        stage("Sonarqube Analysis "){
+                    steps{
+                        withSonarQubeEnv('sonar-server') {
+                            sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Petshop \
+                            -Dsonar.java.binaries=. \
+                            -Dsonar.projectKey=Petshop '''
+                        }
+                    }
+                }
+                stage("quality gate"){
+                    steps {
+                        script {
+                          waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
+                        }
+                   }
+                }
+
+tool 'sonar-scanner' -> I have configured with this name in Jenkins Global tool configuration
+
+Environamet 'sonar-server' -> I have installed sonar-scanner from Maven in Jenkins System with this same name
+
+Token 'Sonar-token' -> I have created with this Id in Jenkins credentials for Quality status check
+
+Now, update this code in pipeline and start the build again.
+
+
+
+
 
