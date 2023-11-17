@@ -374,5 +374,22 @@ I can able to see my Images in Docker hub repository.
 
 ## Step -6: To setup Kubernetes Cluster
 
+### Install kubectl on Jenkins
+
+SSH to Jenkins machine and install below things to make available kubectl.
+
+        sudo apt update
+        sudo apt install curl
+        curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        kubectl version --client
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/ddcd1089-90e5-4998-9a52-ce7d869a02d0)
+
+#### Launch Master and Worker node for Kubernetes
+
+To launch two t3.medium ubuntu-20 machines for Kubernetes Master and Worker node.
+
+
 
 
