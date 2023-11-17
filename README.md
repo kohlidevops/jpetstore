@@ -276,6 +276,7 @@ Jenkins console -> select your Job -> Navigate to Pipeline and add below stages
 
         stage ('Build WAR file'){
                     steps{
+                        sh 'mvn -N io.takari:maven:wrapper'
                         sh 'mvn clean install -DskipTests=true'
                     }
                 }
