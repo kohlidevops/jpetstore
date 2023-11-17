@@ -288,6 +288,9 @@ Jenkins console -> select your Job -> Navigate to Pipeline and add below stages
 
 Apply and save it - Then start the build to see the result.
 
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/c819e655-2122-4dfd-a482-681f6aced00d)
+
+
 ## Step -5: Docker Image Build and Push Stage
 
 ### Install Docker plugins
@@ -301,6 +304,56 @@ Jenkins console → Manage Plugins → Available plugins → Search for Docker a
         docker-build-step
 
 Click install without restart.
+
+### Configure docker in Jenkins Tools
+
+Jenkins console -> Manage Jenkins -> Tools -> Docker Installations -> Add Docker
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/338c7ac8-3091-4c0e-b5ba-592d8f7e2c74)
+
+Apply and save.
+
+### Add docker credentials in Jenkins Global credentials
+
+Jenkins console -> Manage Jenkins -> Credentials -> System -> Global credentials -> Add -> User nme and password
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/6e77441e-c51f-4ccb-81f1-3e11f0bbef5b)
+
+Then create.
+
+### Add Docker build & push, Trivy scanning and Deploy docker container on Jenkins machine
+
+Add below stages in existing pipeline script and start the build to see the result.
+
+        stage ('Build and push to docker hub'){
+                    steps{
+                        script{
+                            withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
+                                sh "docker build -t petshop ."
+                                sh "docker tag petshop latchudevops/petshop:latest"
+                                sh "docker push latchudevops/petshop:latest"
+                           }
+                        }
+                    }
+                }
+                stage("TRIVY"){
+                    steps{
+                        sh "trivy image latchudevops/petshop:latest > trivy.txt"
+                    }
+                }
+                stage ('Deploy to container'){
+                    steps{
+                        sh 'docker run -d --name pet1 -p 8080:8080 latchudevops/petshop:latest'
+                    }
+                }
+
+This build stage will build the docker image using below dockerfile.
+
+        https://github.com/kohlidevops/jpetstore/blob/main/Dockerfile
+
+After the build image, the image should push to Docker repository.
+
+Then this image will scanned by Trivy before deploy on docker container in Jenkins machine.
 
 
 
