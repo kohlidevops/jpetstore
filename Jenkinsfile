@@ -47,6 +47,7 @@ pipeline{
         }
         stage ('Build war file'){
             steps{
+                sh 'mvn -N io.takari:maven:wrapper'
                 sh 'mvn clean install -DskipTests=true'
             }
         }
