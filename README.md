@@ -356,8 +356,23 @@ After the build image, the image should push to Docker repository.
 
 Then this image will scanned by Trivy before deploy on docker container in Jenkins machine.
 
+The build has been succedded.
 
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/ed2c6746-f601-448e-8b49-d7605f722ab4)
 
+I can able to see my docker container in Jenkins machine.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/b36052b4-13e6-44de-8a9f-6044c7b90915)
+
+If i hit my URL with Port 8080 - Because myapp listening on Port 8080.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/adaa8de2-e8e8-4447-982e-1eb0ce8f00b2)
+
+I can able to see my Images in Docker hub repository.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/54b31cd6-ad71-4030-803b-c8fb8213a0c5)
+
+## Step -6: To setup Kubernetes Cluster
 
 
 
