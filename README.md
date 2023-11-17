@@ -390,6 +390,179 @@ SSH to Jenkins machine and install below things to make available kubectl.
 
 To launch two t3.medium ubuntu-20 machines for Kubernetes Master and Worker node.
 
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/806dd4f4-dac3-4fa9-bd88-bb9c9527100e)
 
+### Install docker, kubelet, kubeadm and kubectl
 
+#### To install below commands on both kubernetes master and worker node.
 
+        sudo apt-get update 
+        sudo apt-get install -y docker.io
+        sudo usermod –aG docker ubuntu
+        newgrp docker
+        sudo chmod 777 /var/run/docker.sock
+        sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+        sudo tee /etc/apt/sources.list.d/kubernetes.list <<EOF
+        deb https://apt.kubernetes.io/ kubernetes-xenial main
+        EOF
+        sudo apt-get update
+        sudo apt-get install -y kubelet kubeadm kubectl
+        sudo snap install kube-apiserver
+
+#### To install below commands in kubernetes master node
+        
+        sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+        mkdir -p $HOME/.kube
+        sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        sudo chown $(id -u):$(id -g) $HOME/.kube/config
+        kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+#### To install below commands in kubernetes worker node
+
+        sudo kubeadm join 172.31.39.217:6443 --token p9nqcl.t37afz1pxvz2ubls \
+                --discovery-token-ca-cert-hash sha256:12d30c9d1c32738701c7247240502524188bc4ec402bc07d7dc4b77b0dbea507
+
+#### To copy config file in kubernetes master node to configure in Jenkins console
+
+cd .kube
+cat config
+
+##### To copy and paste this content in local server and this file called as Secret File.txt. I will use this file in jenkins later.
+
+### Step -7: To conigure secret file in Jenkins console
+
+To configure the Secret File.txt (which is created in last step) in Jenkins Global credentials.
+
+Jenkins -> Manage Jenkins -> Credentials -> System -> Global credentials -> New credentials -> Secret file -> upload the text file (Secret File.txt)
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/381b59b4-8113-46f3-beec-ac7f78092fe7)
+
+Thats it! save the credentials.
+
+#### To install kubernetes plugins
+
+To install kubernetes plugins in Jenkins console.
+
+Jenkins -> Manage Jenkins -> Plugins -> Available -> Select and install below plugins without restart
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/a89329cf-bef7-4a2d-99c4-c6090dd08193)
+
+### Step -8: To configure Mail server in Jenkins
+
+To configure mail server in Jenkins to receive notification when build has performed actions such as passed, failed and so on.
+
+#### To install Email plugins in Jenkins console
+
+Jenkins -> Manage plugins -> Available -> install below plugin.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/f41f554b-24f0-4040-891d-d3fd43730973)
+
+#### Tuning your Gmail to receive mails
+
+Go to your Gmail account and click on your profile. Then click on Manage Your Google Account -> click on the security tab on the left side panel you will get this below page.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/daf395a0-ba55-4e85-aef5-c883f18381e4)
+
+2-step verification should be enabled. Search for the app in the search bar and you will get a app passwords like the below image.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/dcee4974-3b73-4618-a64f-272574111af4)
+
+Then create a App name as Jenkins or any meaning ful name and create a password -> Then note it for later use.
+
+#### To configure Email notification in Jenkins console
+
+Jenkins -> Manage Jenkins -> System
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/5cf3318c-65ee-4e81-9636-9636688595ab)
+
+Note: Password shoudl be generated password for app in last step.
+
+Then apply and save.
+
+#### To configure gmail credentials in Jenkins credentials manager
+
+Jenkins -> manage jenkins -> credentials -> system -> global credentials -> add user name and password
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/9447863c-c116-4095-9871-c2454c3a5c11)
+
+Note: Password shoudl be generated password for app in last step.
+
+Then create the credentials
+
+#### To verify the Email configuration in Jenkins
+
+Jenkins -> Manage jenkins -> System -> under Extended Email notification
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/7b37ae1a-f0bf-435a-a2b1-03aa02e362c4)
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/19c50d30-61d7-48a9-aa6c-0567dc2b00c3)
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/9d4c4326-3308-445f-b275-897db2d4b514)
+
+Then Apply and save. You can Test out too before start build.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/72b4bc14-e152-437e-a3d2-13d5b5b3a728)
+
+#### To add a kubenetes deployment stage
+
+To add below stage in your pipeline -> This stage will use the global credentials to deploy the app on kubernetes worker node.
+
+        stage('K8 deployment stage'){
+                    steps{
+                        script{
+                            withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+                                sh 'kubectl apply -f deployment.yaml'
+                            }
+                        }
+                    }
+                }
+
+Apply and save.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/ab1cbc9f-b43b-43c4-afc5-0c089c46f687)
+
+#### To add a Mail notification in Pipeline
+
+###### This mail post block should be after stages
+
+        post {
+             always {
+                emailext attachLog: true,
+                    subject: "'${currentBuild.result}'",
+                    body: "Project: ${env.JOB_NAME}<br/>" +
+                        "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                        "URL: ${env.BUILD_URL}<br/>",
+                    to: 'latchu.devops8@gmail.com',
+                    attachmentsPattern: 'trivy.txt'
+                }
+            }
+
+Apply and save.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/710cdfad-94b4-4815-b1f9-b107e02bc48c)
+
+Now start the build to see the results of all the stages.
+
+My build has been succeded as i expect.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/abda8d27-b5e8-47e7-a40d-21000bab0ceb)
+
+If i'm going to check with my kubernetes master with below command after the build.
+
+        kubectl get all
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/6b61743f-dbf5-4ac9-b65f-c97744099d77)
+
+I can able to see the my kubernetes worker node is running with my docker app.
+
+Now try to access the kubernetes worker node public ip and port number. Here we go!
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/55c4f9c8-3460-4b25-a80e-09920ba6f23d)
+
+I can check with my email to ensure the receiving email reports.
+
+![image](https://github.com/kohlidevops/jpetstore/assets/100069489/8aa12242-93b2-4fc0-af84-7e1ee440c479)
+
+That's it! 
+
+#### Please terminate all the resource once test out.
